@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
 import { Post } from '../../types';
 import { formatDistanceToNow } from '../../utils/dateUtils';
+import { CommentSection } from './CommentSection';
 
 interface PostCardProps {
   post: Post;
@@ -11,6 +12,11 @@ interface PostCardProps {
 
 export function PostCard({ post, onLike, onComment }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
+
+  const toggleComments = () => {
+    setShowComments(!showComments);
+    onComment(post.id);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -69,11 +75,10 @@ export function PostCard({ post, onLike, onComment }: PostCardProps) {
             </button>
 
             <button
-              onClick={() => {
-                setShowComments(!showComments);
-                onComment(post.id);
-              }}
-              className="flex items-center space-x-2 px-3 py-2 rounded-full text-gray-600 hover:text-blue-500 hover:bg-blue-50 transition-all"
+              onClick={toggleComments}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-full transition-all hover:bg-blue-50 ${
+                showComments ? 'text-blue-500 bg-blue-50' : 'text-gray-600 hover:text-blue-500'
+              }`}
             >
               <MessageCircle className="w-5 h-5" />
               <span className="text-sm font-medium">{post.comments}</span>
@@ -88,42 +93,7 @@ export function PostCard({ post, onLike, onComment }: PostCardProps) {
       </div>
 
       {/* Comments Section */}
-      {showComments && (
-        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-          <div className="space-y-3">
-            <div className="flex space-x-3">
-              <img
-                src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&fit=crop"
-                alt="Current user"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Write a comment..."
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            {/* Sample comment */}
-            <div className="flex space-x-3 pt-2">
-              <img
-                src="https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=32&h=32&fit=crop"
-                alt="Commenter"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <div className="flex-1 bg-white rounded-lg px-3 py-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-sm font-semibold text-gray-900">Mike Chen</span>
-                  <span className="text-xs text-gray-500">2h</span>
-                </div>
-                <p className="text-sm text-gray-700">Love this design! The colors are perfect 🎨</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CommentSection postId={post.id} isVisible={showComments} />
     </div>
   );
 }
