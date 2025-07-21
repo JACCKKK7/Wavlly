@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { MapPin, Calendar, Link as LinkIcon, MoreHorizontal, Settings } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { PostCard } from '../components/feed/PostCard';
+import { EditProfileModal } from '../components/profile/EditProfileModal';
 import { apiService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Post, User } from '../types';
@@ -17,6 +18,7 @@ export function ProfilePage() {
   const [postsLoading, setPostsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'media'>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Determine the actual user ID to load
   const targetUserId = userId === 'me' ? currentUser?.id : userId;
@@ -107,6 +109,10 @@ export function ProfilePage() {
     console.log('Opening comments for post:', postId);
   };
 
+  const handleProfileUpdate = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -158,7 +164,10 @@ export function ProfilePage() {
                   
                   <div className="flex items-center space-x-3 mt-4 sm:mt-0">
                     {isOwnProfile ? (
-                      <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                      <button 
+                        onClick={() => setShowEditModal(true)}
+                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                      >
                         <Settings size={16} />
                         <span>Edit Profile</span>
                       </button>
@@ -261,6 +270,16 @@ export function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {user && (
+        <EditProfileModal
+          user={user}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={handleProfileUpdate}
+        />
+      )}
     </div>
   );
 }

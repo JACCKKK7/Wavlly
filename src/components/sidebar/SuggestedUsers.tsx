@@ -49,7 +49,7 @@ export function SuggestedUsers() {
       const isCurrentlyFollowed = followedUsers.has(userId);
       
       if (isCurrentlyFollowed) {
-        await apiService.unfollowUser(userId);
+        const response = await apiService.unfollowUser(userId);
         const newFollowed = new Set(followedUsers);
         newFollowed.delete(userId);
         setFollowedUsers(newFollowed);
@@ -57,11 +57,15 @@ export function SuggestedUsers() {
         // Update the user's follower count in the list
         setSuggestedUsers(prev => prev.map(user => 
           user.id === userId 
-            ? { ...user, followers: Math.max(0, user.followers - 1), isFollowing: false }
+            ? { 
+                ...user, 
+                followers: response.followerCount || Math.max(0, (typeof user.followers === 'number' ? user.followers - 1 : 0)),
+                isFollowing: false 
+              }
             : user
         ));
       } else {
-        await apiService.followUser(userId);
+        const response = await apiService.followUser(userId);
         const newFollowed = new Set(followedUsers);
         newFollowed.add(userId);
         setFollowedUsers(newFollowed);
@@ -69,7 +73,11 @@ export function SuggestedUsers() {
         // Update the user's follower count in the list
         setSuggestedUsers(prev => prev.map(user => 
           user.id === userId 
-            ? { ...user, followers: user.followers + 1, isFollowing: true }
+            ? { 
+                ...user, 
+                followers: response.followerCount || ((typeof user.followers === 'number' ? user.followers : 0) + 1),
+                isFollowing: true 
+              }
             : user
         ));
       }

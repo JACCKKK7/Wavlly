@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
 import { Post } from '../../types';
 import { formatDistanceToNow } from '../../utils/dateUtils';
@@ -8,14 +9,20 @@ interface PostCardProps {
   post: Post;
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
+  onCommentAdded?: () => void;
 }
 
-export function PostCard({ post, onLike, onComment }: PostCardProps) {
+export function PostCard({ post, onLike, onComment, onCommentAdded }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
+  const navigate = useNavigate();
 
   const toggleComments = () => {
     setShowComments(!showComments);
     onComment(post.id);
+  };
+
+  const handleAuthorClick = () => {
+    navigate(`/profile/${post.author.id}`);
   };
 
   return (
@@ -23,15 +30,20 @@ export function PostCard({ post, onLike, onComment }: PostCardProps) {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <img
-            src={post.author.avatar}
-            alt={post.author.fullName}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <div>
-            <h3 className="font-semibold text-gray-900">{post.author.fullName}</h3>
-            <p className="text-sm text-gray-500">@{post.author.username}</p>
-          </div>
+          <button 
+            onClick={handleAuthorClick}
+            className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+          >
+            <img
+              src={post.author.avatar}
+              alt={post.author.fullName}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div>
+              <h3 className="font-semibold text-gray-900">{post.author.fullName}</h3>
+              <p className="text-sm text-gray-500">@{post.author.username}</p>
+            </div>
+          </button>
         </div>
         
         <div className="flex items-center space-x-2">
@@ -93,7 +105,11 @@ export function PostCard({ post, onLike, onComment }: PostCardProps) {
       </div>
 
       {/* Comments Section */}
-      <CommentSection postId={post.id} isVisible={showComments} />
+      <CommentSection 
+        postId={post.id} 
+        isVisible={showComments} 
+        onCommentAdded={onCommentAdded}
+      />
     </div>
   );
 }
