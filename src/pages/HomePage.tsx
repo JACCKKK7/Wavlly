@@ -25,7 +25,15 @@ export function HomePage() {
       setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
-      setPosts([]); // Set empty array on error to prevent map error
+      // Try to load posts without authentication as fallback
+      try {
+        const response = await fetch('http://localhost:5000/api/posts');
+        const fallbackData = await response.json();
+        setPosts(fallbackData.posts || []);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        setPosts([]); // Set empty array on error to prevent map error
+      }
     } finally {
       setLoading(false);
     }
@@ -53,12 +61,18 @@ export function HomePage() {
   };
 
   const handlePostCreate = async (content: string, image?: string) => {
+    if (!content.trim()) {
+      alert('Please enter some content for your post');
+      return;
+    }
+
     try {
       const images = image ? [image] : undefined;
       const newPost = await apiService.createPost(content, images);
       setPosts(prev => [newPost, ...prev]);
     } catch (error) {
       console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
     }
   };
 

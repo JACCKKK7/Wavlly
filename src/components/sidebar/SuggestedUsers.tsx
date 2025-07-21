@@ -14,7 +14,19 @@ export function SuggestedUsers() {
 
   const loadSuggestedUsers = async () => {
     try {
-      const users = await apiService.getSuggestedUsers();
+      const token = localStorage.getItem('wavvly_token');
+      let users;
+      
+      if (token) {
+        // Use authenticated endpoint
+        users = await apiService.getSuggestedUsers();
+      } else {
+        // Use demo endpoint for non-authenticated users
+        const response = await fetch('http://localhost:5000/api/users/demo-suggested');
+        const data = await response.json();
+        users = data.users || [];
+      }
+      
       setSuggestedUsers(users);
     } catch (error) {
       console.error('Error loading suggested users:', error);

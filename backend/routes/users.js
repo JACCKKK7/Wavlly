@@ -46,6 +46,36 @@ router.get('/suggested', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/users/demo-suggested
+// @desc    Get demo suggested users (for testing without auth)
+// @access  Public
+router.get('/demo-suggested', async (req, res) => {
+  try {
+    // Get some sample users
+    const suggestedUsers = await User.find({})
+    .select('username fullName avatar bio')
+    .limit(5);
+
+    // Transform users for frontend
+    const transformedUsers = suggestedUsers.map(user => ({
+      id: user._id.toString(),
+      username: user.username,
+      fullName: user.fullName,
+      avatar: user.avatar,
+      bio: user.bio || '',
+      followers: Math.floor(Math.random() * 100), // Random demo data
+      following: Math.floor(Math.random() * 50), // Random demo data
+      isFollowing: false,
+      createdAt: user.createdAt || new Date().toISOString()
+    }));
+
+    res.json({ users: transformedUsers });
+  } catch (error) {
+    console.error('Get demo suggested users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/users/search
 // @desc    Search users
 // @access  Public
