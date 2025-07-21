@@ -264,10 +264,10 @@ router.post('/:id/follow', auth, async (req, res) => {
     // Create notification for the followed user
     const Notification = require('../models/Notification');
     const notification = new Notification({
-      user: userToFollow._id,
+      recipient: userToFollow._id,
+      sender: currentUser._id,
       type: 'follow',
-      message: `${currentUser.fullName} started following you`,
-      from: currentUser._id
+      message: `${currentUser.fullName} started following you`
     });
     await notification.save();
 

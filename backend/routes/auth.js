@@ -62,8 +62,7 @@ router.post('/register', [
       email,
       fullName,
       password,
-      bio: `Hey there! I'm ${fullName} and I'm new to Wavvly! 👋`,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=8b5cf6&color=fff&size=128`
+      bio: `Hey there! I'm ${fullName} and I'm new to Wavvly! 👋`
     });
 
     await user.save();

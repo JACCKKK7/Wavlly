@@ -316,10 +316,11 @@ router.post('/:id/like', auth, async (req, res) => {
         const currentUser = await User.findById(req.user.id);
         
         const notification = new Notification({
-          user: post.author._id,
+          recipient: post.author._id,
+          sender: currentUser._id,
           type: 'like',
           message: `${currentUser.fullName} liked your post`,
-          from: currentUser._id
+          relatedPost: post._id
         });
         await notification.save();
       }
@@ -378,10 +379,11 @@ router.post('/:id/comment', [
       const currentUser = await User.findById(req.user.id);
       
       const notification = new Notification({
-        user: post.author._id,
+        recipient: post.author._id,
+        sender: currentUser._id,
         type: 'comment',
         message: `${currentUser.fullName} commented on your post`,
-        from: currentUser._id
+        relatedPost: post._id
       });
       await notification.save();
     }
