@@ -122,14 +122,19 @@ export function Header() {
                 </button>
 
                 <div className="flex items-center space-x-3">
-                  <img
-                    src={user?.avatar}
-                    alt={user?.fullName}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
-                  />
-                  <span className="hidden sm:block text-sm font-medium text-gray-700">
-                    {user?.fullName}
-                  </span>
+                  <button 
+                    onClick={() => navigate('/profile/me')}
+                    className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
+                  >
+                    <img
+                      src={user?.avatar}
+                      alt={user?.fullName}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                    />
+                    <span className="hidden sm:block text-sm font-medium text-gray-700">
+                      {user?.fullName}
+                    </span>
+                  </button>
                 </div>
 
                 <button

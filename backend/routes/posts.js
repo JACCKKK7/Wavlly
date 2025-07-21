@@ -423,8 +423,26 @@ router.get('/user/:userId', async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Transform posts for frontend
+    const transformedPosts = posts.map(post => ({
+      id: post._id.toString(),
+      author: {
+        id: post.author._id.toString(),
+        username: post.author.username,
+        fullName: post.author.fullName,
+        avatar: post.author.avatar,
+        isVerified: post.author.isVerified || false
+      },
+      content: post.content,
+      image: post.images && post.images.length > 0 ? post.images[0] : null,
+      likes: post.likes ? post.likes.length : 0,
+      comments: post.comments ? post.comments.length : 0,
+      isLiked: false, // Will be determined by frontend based on auth status
+      createdAt: post.createdAt
+    }));
+
     res.json({
-      posts,
+      posts: transformedPosts,
       currentPage: page,
       hasMore: posts.length === limit
     });

@@ -11,6 +11,7 @@ function AppContent() {
     <Routes>
       <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" replace />} />
       <Route path="/" element={<HomePage />} />
+      <Route path="/profile/me" element={user ? <ProfilePage /> : <Navigate to="/auth" replace />} />
       <Route path="/profile/:userId" element={<ProfilePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -68,8 +68,8 @@ class ApiService {
     });
     const data = await this.handleResponse(response);
     return { 
-      isLiked: data.liked,
-      likes: data.likeCount
+      isLiked: data.isLiked,
+      likes: data.likes
     };
   }
 

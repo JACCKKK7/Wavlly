@@ -5,9 +5,14 @@ export interface User {
   fullName: string;
   avatar: string;
   bio: string;
-  followers: number;
-  following: number;
+  followers: number | any[]; // Can be count or array
+  following: number | any[]; // Can be count or array
+  followerCount?: number;
+  followingCount?: number;
+  postCount?: number;
   isFollowing?: boolean;
+  isVerified?: boolean;
+  joinDate?: string;
   createdAt: string;
 }
 
