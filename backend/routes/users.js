@@ -261,7 +261,21 @@ router.post('/:id/follow', auth, async (req, res) => {
     await currentUser.save();
     await userToFollow.save();
 
-    res.json({ message: 'User followed successfully' });
+    // Create notification for the followed user
+    const Notification = require('../models/Notification');
+    const notification = new Notification({
+      user: userToFollow._id,
+      type: 'follow',
+      message: `${currentUser.fullName} started following you`,
+      from: currentUser._id
+    });
+    await notification.save();
+
+    res.json({ 
+      message: 'User followed successfully',
+      isFollowing: true,
+      followerCount: userToFollow.followers.length
+    });
   } catch (error) {
     console.error('Follow user error:', error);
     if (error.kind === 'ObjectId') {
@@ -299,7 +313,11 @@ router.post('/:id/unfollow', auth, async (req, res) => {
     await currentUser.save();
     await userToUnfollow.save();
 
-    res.json({ message: 'User unfollowed successfully' });
+    res.json({ 
+      message: 'User unfollowed successfully',
+      isFollowing: false,
+      followerCount: userToUnfollow.followers.length
+    });
   } catch (error) {
     console.error('Unfollow user error:', error);
     if (error.kind === 'ObjectId') {
