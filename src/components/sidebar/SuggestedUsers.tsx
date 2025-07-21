@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, UserPlus, UserCheck } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { User } from '../../types';
@@ -15,9 +14,7 @@ export function SuggestedUsers() {
 
   const loadSuggestedUsers = async () => {
     try {
-      const response = await apiService.getSuggestedUsers();
-      // Backend returns { users: [...] } so we need to extract the users array
-      const users = response.users || [];
+      const users = await apiService.getSuggestedUsers();
       setSuggestedUsers(users);
     } catch (error) {
       console.error('Error loading suggested users:', error);

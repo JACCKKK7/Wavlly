@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '../components/layout/Header';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
@@ -6,11 +6,9 @@ import { UserProfile } from '../components/sidebar/UserProfile';
 import { TrendingTopics } from '../components/sidebar/TrendingTopics';
 import { SuggestedUsers } from '../components/sidebar/SuggestedUsers';
 import { Post } from '../types';
-import { useAuth } from '../context/AuthContext';
 import { apiService } from '../services/api';
 
 export function HomePage() {
-  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,9 +19,9 @@ export function HomePage() {
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getPosts();
+      const data = await apiService.getPosts();
       // Backend returns { posts: [...] } so we need to extract the posts array
-      const fetchedPosts = response.posts || [];
+      const fetchedPosts = data.posts || [];
       setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -35,13 +33,13 @@ export function HomePage() {
 
   const handleLike = async (postId: string) => {
     try {
-      const response = await apiService.likePost(postId);
+      const data = await apiService.likePost(postId);
       setPosts(prev => prev.map(post => 
         post.id === postId 
           ? { 
               ...post, 
-              isLiked: response.isLiked,
-              likes: response.likes
+              isLiked: data.isLiked,
+              likes: data.likes
             }
           : post
       ));
@@ -56,7 +54,8 @@ export function HomePage() {
 
   const handlePostCreate = async (content: string, image?: string) => {
     try {
-      const newPost = await apiService.createPost(content, image);
+      const images = image ? [image] : undefined;
+      const newPost = await apiService.createPost(content, images);
       setPosts(prev => [newPost, ...prev]);
     } catch (error) {
       console.error('Error creating post:', error);
