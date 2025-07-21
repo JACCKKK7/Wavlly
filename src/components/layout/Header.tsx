@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Bell, MessageCircle, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import { SearchDropdown } from '../search/SearchDropdown';
+import { api } from '../../services/api';
 
 export function Header() {
   const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleUserSelect = (userId: string) => {
     // Navigate to user profile

@@ -38,16 +38,36 @@ export function SuggestedUsers() {
 
   const handleFollow = async (userId: string) => {
     try {
-      const response = await apiService.followUser(userId);
-      const newFollowed = new Set(followedUsers);
-      if (response.isFollowing) {
-        newFollowed.add(userId);
-      } else {
+      const isCurrentlyFollowed = followedUsers.has(userId);
+      
+      if (isCurrentlyFollowed) {
+        await apiService.unfollowUser(userId);
+        const newFollowed = new Set(followedUsers);
         newFollowed.delete(userId);
+        setFollowedUsers(newFollowed);
+        
+        // Update the user's follower count in the list
+        setSuggestedUsers(prev => prev.map(user => 
+          user.id === userId 
+            ? { ...user, followers: Math.max(0, user.followers - 1), isFollowing: false }
+            : user
+        ));
+      } else {
+        const response = await apiService.followUser(userId);
+        const newFollowed = new Set(followedUsers);
+        newFollowed.add(userId);
+        setFollowedUsers(newFollowed);
+        
+        // Update the user's follower count in the list
+        setSuggestedUsers(prev => prev.map(user => 
+          user.id === userId 
+            ? { ...user, followers: user.followers + 1, isFollowing: true }
+            : user
+        ));
       }
-      setFollowedUsers(newFollowed);
     } catch (error) {
-      console.error('Error following user:', error);
+      console.error('Error following/unfollowing user:', error);
+      alert('Failed to update follow status. Please try again.');
     }
   };
 

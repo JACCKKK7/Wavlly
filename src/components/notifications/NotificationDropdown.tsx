@@ -2,20 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, Heart, MessageCircle, UserPlus, X } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { formatDistanceToNow } from '../../utils/dateUtils';
-
-interface Notification {
-  _id: string;
-  type: 'like' | 'comment' | 'follow';
-  message: string;
-  read: boolean;
-  createdAt: string;
-  from: {
-    _id: string;
-    username: string;
-    fullName: string;
-    avatar: string;
-  };
-}
+import type { Notification } from '../../types';
 
 interface NotificationDropdownProps {
   isOpen: boolean;
@@ -49,10 +36,19 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
   const loadNotifications = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('wavvly_token');
+      
+      if (!token) {
+        // If not authenticated, show demo notifications or empty state
+        setNotifications([]);
+        return;
+      }
+      
       const data = await apiService.getNotifications();
       setNotifications(data.notifications || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
