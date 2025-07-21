@@ -7,8 +7,10 @@ import { TrendingTopics } from '../components/sidebar/TrendingTopics';
 import { SuggestedUsers } from '../components/sidebar/SuggestedUsers';
 import { Post } from '../types';
 import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export function HomePage() {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +42,11 @@ export function HomePage() {
   };
 
   const handleLike = async (postId: string) => {
+    if (!user) {
+      alert('Please log in to like posts');
+      return;
+    }
+
     try {
       const data = await apiService.likePost(postId);
       setPosts(prev => prev.map(post => 
@@ -53,14 +60,21 @@ export function HomePage() {
       ));
     } catch (error) {
       console.error('Error liking post:', error);
+      alert('Failed to like post. Please try again.');
     }
   };
 
   const handleComment = (postId: string) => {
+    // Comments are handled within the PostCard component
     console.log('Opening comments for post:', postId);
   };
 
   const handlePostCreate = async (content: string, image?: string) => {
+    if (!user) {
+      alert('Please log in to create posts');
+      return;
+    }
+    
     if (!content.trim()) {
       alert('Please enter some content for your post');
       return;

@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, UserCheck } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { User } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 export function SuggestedUsers() {
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadSuggestedUsers();
-  }, []);
+  }, [currentUser]); // Re-load when auth state changes
 
   const loadSuggestedUsers = async () => {
     try {
-      const token = localStorage.getItem('wavvly_token');
       let users;
       
-      if (token) {
+      if (currentUser) {
         // Use authenticated endpoint
         users = await apiService.getSuggestedUsers();
       } else {
@@ -37,6 +40,11 @@ export function SuggestedUsers() {
   };
 
   const handleFollow = async (userId: string) => {
+    if (!currentUser) {
+      alert('Please log in to follow users');
+      return;
+    }
+
     try {
       const isCurrentlyFollowed = followedUsers.has(userId);
       
@@ -53,7 +61,7 @@ export function SuggestedUsers() {
             : user
         ));
       } else {
-        const response = await apiService.followUser(userId);
+        await apiService.followUser(userId);
         const newFollowed = new Set(followedUsers);
         newFollowed.add(userId);
         setFollowedUsers(newFollowed);
@@ -89,26 +97,39 @@ export function SuggestedUsers() {
             
             return (
               <div key={user.id} className="flex items-center space-x-3">
-                <img
-                  src={user.avatar}
-                  alt={user.fullName}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-gray-900 truncate">{user.fullName}</h4>
-                  <p className="text-sm text-gray-500 truncate">@{user.username}</p>
+                <div 
+                  className="flex items-center space-x-3 flex-1 cursor-pointer"
+                  onClick={() => navigate(`/profile/${user.id}`)}
+                >
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 truncate">{user.fullName}</h4>
+                    <p className="text-sm text-gray-500 truncate">@{user.username}</p>
+                  </div>
                 </div>
                 
                 <button
                   onClick={() => handleFollow(user.id)}
+                  disabled={!currentUser}
                   className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    isFollowing
+                    !currentUser
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : isFollowing
                       ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}
                 >
-                  {isFollowing ? (
+                  {!currentUser ? (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Login to Follow</span>
+                    </>
+                  ) : isFollowing ? (
                     <>
                       <UserCheck className="w-4 h-4" />
                       <span>Following</span>

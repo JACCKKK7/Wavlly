@@ -1,22 +1,28 @@
-import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
+import { ProfilePage } from './pages/ProfilePage';
 
 function AppContent() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
-  if (!user || !token) {
-    return <AuthPage />;
-  }
-
-  return <HomePage />;
+  return (
+    <Routes>
+      <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" replace />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/profile/:userId" element={<ProfilePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <AppContent />
+      </Router>
     </AuthProvider>
   );
 }

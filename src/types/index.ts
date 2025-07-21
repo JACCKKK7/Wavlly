@@ -32,6 +32,26 @@ export interface Comment {
   replies?: Comment[];
 }
 
+export interface Notification {
+  id: string;
+  _id: string;
+  type: 'like' | 'comment' | 'follow';
+  message: string;
+  read: boolean;
+  createdAt: string;
+  from: {
+    _id: string;
+    id: string;
+    username: string;
+    fullName: string;
+    avatar: string;
+  };
+  post?: {
+    _id: string;
+    id: string;
+  };
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
