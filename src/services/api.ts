@@ -183,6 +183,21 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Upload avatar
+  async uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const response = await fetch(`${API_BASE_URL}/upload/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('wavvly_token')}`
+      },
+      body: formData
+    });
+    return this.handleResponse(response);
+  }
+
   // Notifications endpoints
   async getNotifications() {
     const response = await fetch(`${API_BASE_URL}/notifications`, {

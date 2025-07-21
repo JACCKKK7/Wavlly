@@ -38,11 +38,15 @@ export function UserProfile() {
         
         <div className="flex items-center justify-around pt-4 border-t border-gray-100">
           <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{user.following}</div>
+            <div className="text-xl font-bold text-gray-900">
+              {Array.isArray(user.following) ? user.following.length : (user.followingCount || user.following || 0)}
+            </div>
             <div className="text-sm text-gray-500">Following</div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{user.followers}</div>
+            <div className="text-xl font-bold text-gray-900">
+              {Array.isArray(user.followers) ? user.followers.length : (user.followerCount || user.followers || 0)}
+            </div>
             <div className="text-sm text-gray-500">Followers</div>
           </div>
         </div>

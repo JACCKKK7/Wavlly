@@ -222,9 +222,15 @@ export function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-end sm:space-x-6 -mt-16">
               {/* Profile Picture */}
               <img
-                src={user.avatar}
+                src={user.avatar && user.avatar.trim() !== '' 
+                  ? user.avatar 
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=8b5cf6&color=fff&size=128`}
                 alt={user.fullName}
                 className="w-32 h-32 rounded-full border-4 border-white object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=8b5cf6&color=fff&size=128`;
+                }}
               />
               
               <div className="flex-1 mt-4 sm:mt-0">
