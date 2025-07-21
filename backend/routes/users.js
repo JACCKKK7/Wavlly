@@ -6,6 +6,73 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
+// @route   GET /api/users/suggested
+// @desc    Get suggested users to follow
+// @access  Private
+router.get('/suggested', auth, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Get users that current user is not following
+    const suggestedUsers = await User.find({
+      _id: { 
+        $nin: [...currentUser.following, req.user.id] 
+      }
+    })
+    .select('username fullName avatar bio')
+    .limit(5);
+
+    // Transform users for frontend
+    const transformedUsers = suggestedUsers.map(user => ({
+      id: user._id.toString(),
+      username: user.username,
+      fullName: user.fullName,
+      avatar: user.avatar,
+      bio: user.bio || '',
+      followers: 0, // Could be populated from actual data if needed
+      following: 0, // Could be populated from actual data if needed
+      isFollowing: false,
+      createdAt: user.createdAt || new Date().toISOString()
+    }));
+
+    res.json({ users: transformedUsers });
+  } catch (error) {
+    console.error('Get suggested users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/search
+// @desc    Search users
+// @access  Public
+router.get('/search', async (req, res) => {
+  try {
+    const query = req.query.q;
+    
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ message: 'Search query must be at least 2 characters' });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: query, $options: 'i' } },
+        { fullName: { $regex: query, $options: 'i' } }
+      ]
+    })
+    .select('username fullName avatar bio')
+    .limit(20);
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/users/:id
 // @desc    Get user profile by ID
 // @access  Public
@@ -208,56 +275,6 @@ router.post('/:id/unfollow', auth, async (req, res) => {
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @route   GET /api/users/suggested
-// @desc    Get suggested users to follow
-// @access  Private
-router.get('/suggested', auth, async (req, res) => {
-  try {
-    const currentUser = await User.findById(req.user.id);
-    
-    // Get users that current user is not following
-    const suggestedUsers = await User.find({
-      _id: { 
-        $nin: [...currentUser.following, req.user.id] 
-      }
-    })
-    .select('username fullName avatar bio isVerified')
-    .limit(5);
-
-    res.json({ users: suggestedUsers });
-  } catch (error) {
-    console.error('Get suggested users error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @route   GET /api/users/search/:query
-// @desc    Search users
-// @access  Public
-router.get('/search/:query', async (req, res) => {
-  try {
-    const query = req.params.query;
-    
-    if (!query || query.trim().length < 2) {
-      return res.status(400).json({ message: 'Search query must be at least 2 characters' });
-    }
-
-    const users = await User.find({
-      $or: [
-        { username: { $regex: query, $options: 'i' } },
-        { fullName: { $regex: query, $options: 'i' } }
-      ]
-    })
-    .select('username fullName avatar bio isVerified')
-    .limit(20);
-
-    res.json({ users });
-  } catch (error) {
-    console.error('Search users error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
