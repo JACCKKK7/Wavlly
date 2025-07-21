@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { MapPin, Calendar, Link as LinkIcon, MoreHorizontal, Settings } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { PostCard } from '../components/feed/PostCard';
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from '../utils/dateUtils';
 
 export function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
+  const location = useLocation();
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -20,41 +21,75 @@ export function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Determine if this is "my profile" based on the pathname
+  const isMyProfile = location.pathname === '/profile/me';
+  
   // Determine the actual user ID to load
-  const targetUserId = userId === 'me' ? currentUser?.id : userId;
+  const targetUserId = isMyProfile ? currentUser?.id : userId;
   const isOwnProfile = currentUser?.id === targetUserId;
 
+  // Debug logging
+  console.log('ProfilePage - userId:', userId, 'pathname:', location.pathname, 'currentUser:', currentUser?.id, 'targetUserId:', targetUserId, 'isMyProfile:', isMyProfile);
+
   useEffect(() => {
-    if (targetUserId) {
+    // Wait for auth context to initialize
+    if (isMyProfile && !currentUser) {
+      // Auth is still loading or user is not logged in
+      setLoading(false);
+      setPostsLoading(false);
+      return;
+    }
+
+    // Only load profile if we have a valid targetUserId
+    if (targetUserId && targetUserId !== 'undefined' && targetUserId.trim() !== '') {
       loadUserProfile();
       loadUserPosts();
+    } else {
+      console.error('Invalid targetUserId:', targetUserId);
+      setLoading(false);
+      setPostsLoading(false);
     }
-  }, [targetUserId]);
+  }, [targetUserId, currentUser, isMyProfile]);
 
   const loadUserProfile = async () => {
+    if (!targetUserId || targetUserId === 'undefined' || targetUserId.trim() === '') {
+      console.error('No valid user ID to load profile for:', targetUserId);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const userData = await apiService.getUserProfile(targetUserId!);
+      const userData = await apiService.getUserProfile(targetUserId);
       setUser(userData.user);
       
       // Check if current user is following this user
       if (currentUser && userData.user.followers && !isOwnProfile) {
-        const isCurrentlyFollowing = userData.user.followers.some(
-          (follower: any) => follower.id === currentUser.id || follower._id === currentUser.id
-        );
+        const isCurrentlyFollowing = Array.isArray(userData.user.followers) 
+          ? userData.user.followers.some((follower: any) => 
+              (follower.id || follower._id) === currentUser.id
+            )
+          : false;
         setIsFollowing(isCurrentlyFollowing);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
   const loadUserPosts = async () => {
+    if (!targetUserId || targetUserId === 'undefined' || targetUserId.trim() === '') {
+      console.error('No valid user ID to load posts for:', targetUserId);
+      setPostsLoading(false);
+      return;
+    }
+
     try {
       setPostsLoading(true);
-      const data = await apiService.getUserPosts(targetUserId!);
+      const data = await apiService.getUserPosts(targetUserId);
       
       // The backend already transforms the posts, so use them directly
       setPosts(data.posts || []);
@@ -67,16 +102,26 @@ export function ProfilePage() {
   };
 
   const handleFollow = async () => {
+    if (!currentUser) {
+      alert('Please log in to follow users');
+      return;
+    }
+
+    if (!targetUserId || targetUserId === 'undefined' || targetUserId.trim() === '') {
+      console.error('No valid user ID to follow:', targetUserId);
+      return;
+    }
+
     try {
       if (isFollowing) {
-        const response = await apiService.unfollowUser(targetUserId!);
+        const response = await apiService.unfollowUser(targetUserId);
         setIsFollowing(false);
         setUser(prev => prev ? { 
           ...prev, 
           followerCount: response.followerCount || Math.max(0, (prev.followerCount || 0) - 1)
         } : null);
       } else {
-        const response = await apiService.followUser(targetUserId!);
+        const response = await apiService.followUser(targetUserId);
         setIsFollowing(true);
         setUser(prev => prev ? { 
           ...prev, 
@@ -119,6 +164,33 @@ export function ProfilePage() {
         <Header />
         <div className="flex justify-center items-center py-20">
           <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!targetUserId || targetUserId === 'undefined' || targetUserId.trim() === '') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {isMyProfile ? 'Please Log In' : 'Invalid Profile'}
+          </h2>
+          <p className="text-gray-600">
+            {isMyProfile 
+              ? 'You need to be logged in to view your profile.' 
+              : 'Please check the URL or try again.'
+            }
+          </p>
+          {isMyProfile && (
+            <button
+              onClick={() => window.location.href = '/auth'}
+              className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Go to Login
+            </button>
+          )}
         </div>
       </div>
     );

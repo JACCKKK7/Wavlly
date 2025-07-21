@@ -30,11 +30,11 @@ export function Header() {
     }
   };
 
-  // Poll for new notifications every 30 seconds
+  // Poll for new notifications every 60 seconds (reduced from 30)
   useEffect(() => {
     if (user && localStorage.getItem('wavvly_token')) {
       fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 30000);
+      const interval = setInterval(fetchUnreadCount, 60000); // Increased to 60 seconds
       return () => clearInterval(interval);
     } else {
       setUnreadCount(0); // Reset count when not authenticated
@@ -127,9 +127,16 @@ export function Header() {
                     className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
                   >
                     <img
-                      src={user?.avatar}
+                      src={user?.avatar && user.avatar.trim() !== '' 
+                        ? user.avatar 
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=8b5cf6&color=fff&size=32`}
                       alt={user?.fullName}
                       className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                      onError={(e) => {
+                        // Fallback to generated avatar if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=8b5cf6&color=fff&size=32`;
+                      }}
                     />
                     <span className="hidden sm:block text-sm font-medium text-gray-700">
                       {user?.fullName}

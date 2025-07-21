@@ -7,13 +7,23 @@ export function UserProfile() {
 
   if (!user) return null;
 
+  // Provide a default avatar if none exists or if it's empty
+  const avatarUrl = user.avatar && user.avatar.trim() !== '' 
+    ? user.avatar 
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=8b5cf6&color=fff&size=80`;
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="text-center">
         <img
-          src={user.avatar}
+          src={avatarUrl}
           alt={user.fullName}
           className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-purple-100"
+          onError={(e) => {
+            // Fallback to generated avatar if image fails to load
+            const target = e.target as HTMLImageElement;
+            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=8b5cf6&color=fff&size=80`;
+          }}
         />
         
         <h2 className="text-xl font-bold text-gray-900 mb-1">{user.fullName}</h2>
