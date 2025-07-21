@@ -21,10 +21,13 @@ export function HomePage() {
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const fetchedPosts = await apiService.getPosts();
+      const response = await apiService.getPosts();
+      // Backend returns { posts: [...] } so we need to extract the posts array
+      const fetchedPosts = response.posts || [];
       setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
+      setPosts([]); // Set empty array on error to prevent map error
     } finally {
       setLoading(false);
     }

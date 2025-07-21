@@ -6,103 +6,6 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   GET /api/users/suggested
-// @desc    Get suggested users to follow
-// @access  Private
-router.get('/suggested', auth, async (req, res) => {
-  try {
-    const currentUser = await User.findById(req.user.id);
-    
-    if (!currentUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Get users that current user is not following
-    const suggestedUsers = await User.find({
-      _id: { 
-        $nin: [...currentUser.following, req.user.id] 
-      }
-    })
-    .select('username fullName avatar bio')
-    .limit(5);
-
-    // Transform users for frontend
-    const transformedUsers = suggestedUsers.map(user => ({
-      id: user._id.toString(),
-      username: user.username,
-      fullName: user.fullName,
-      avatar: user.avatar,
-      bio: user.bio || '',
-      followers: 0, // Could be populated from actual data if needed
-      following: 0, // Could be populated from actual data if needed
-      isFollowing: false,
-      createdAt: user.createdAt || new Date().toISOString()
-    }));
-
-    res.json({ users: transformedUsers });
-  } catch (error) {
-    console.error('Get suggested users error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @route   GET /api/users/demo-suggested
-// @desc    Get demo suggested users (for testing without auth)
-// @access  Public
-router.get('/demo-suggested', async (req, res) => {
-  try {
-    // Get some sample users
-    const suggestedUsers = await User.find({})
-    .select('username fullName avatar bio')
-    .limit(5);
-
-    // Transform users for frontend
-    const transformedUsers = suggestedUsers.map(user => ({
-      id: user._id.toString(),
-      username: user.username,
-      fullName: user.fullName,
-      avatar: user.avatar,
-      bio: user.bio || '',
-      followers: Math.floor(Math.random() * 100), // Random demo data
-      following: Math.floor(Math.random() * 50), // Random demo data
-      isFollowing: false,
-      createdAt: user.createdAt || new Date().toISOString()
-    }));
-
-    res.json({ users: transformedUsers });
-  } catch (error) {
-    console.error('Get demo suggested users error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @route   GET /api/users/search
-// @desc    Search users
-// @access  Public
-router.get('/search', async (req, res) => {
-  try {
-    const query = req.query.q;
-    
-    if (!query || query.trim().length < 2) {
-      return res.status(400).json({ message: 'Search query must be at least 2 characters' });
-    }
-
-    const users = await User.find({
-      $or: [
-        { username: { $regex: query, $options: 'i' } },
-        { fullName: { $regex: query, $options: 'i' } }
-      ]
-    })
-    .select('username fullName avatar bio')
-    .limit(20);
-
-    res.json({ users });
-  } catch (error) {
-    console.error('Search users error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // @route   GET /api/users/:id
 // @desc    Get user profile by ID
 // @access  Public
@@ -261,21 +164,7 @@ router.post('/:id/follow', auth, async (req, res) => {
     await currentUser.save();
     await userToFollow.save();
 
-    // Create notification for the followed user
-    const Notification = require('../models/Notification');
-    const notification = new Notification({
-      recipient: userToFollow._id,
-      sender: currentUser._id,
-      type: 'follow',
-      message: `${currentUser.fullName} started following you`
-    });
-    await notification.save();
-
-    res.json({ 
-      message: 'User followed successfully',
-      isFollowing: true,
-      followerCount: userToFollow.followers.length
-    });
+    res.json({ message: 'User followed successfully' });
   } catch (error) {
     console.error('Follow user error:', error);
     if (error.kind === 'ObjectId') {
@@ -313,16 +202,62 @@ router.post('/:id/unfollow', auth, async (req, res) => {
     await currentUser.save();
     await userToUnfollow.save();
 
-    res.json({ 
-      message: 'User unfollowed successfully',
-      isFollowing: false,
-      followerCount: userToUnfollow.followers.length
-    });
+    res.json({ message: 'User unfollowed successfully' });
   } catch (error) {
     console.error('Unfollow user error:', error);
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'User not found' });
     }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/suggested
+// @desc    Get suggested users to follow
+// @access  Private
+router.get('/suggested', auth, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    
+    // Get users that current user is not following
+    const suggestedUsers = await User.find({
+      _id: { 
+        $nin: [...currentUser.following, req.user.id] 
+      }
+    })
+    .select('username fullName avatar bio isVerified')
+    .limit(5);
+
+    res.json({ users: suggestedUsers });
+  } catch (error) {
+    console.error('Get suggested users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/search/:query
+// @desc    Search users
+// @access  Public
+router.get('/search/:query', async (req, res) => {
+  try {
+    const query = req.params.query;
+    
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ message: 'Search query must be at least 2 characters' });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: query, $options: 'i' } },
+        { fullName: { $regex: query, $options: 'i' } }
+      ]
+    })
+    .select('username fullName avatar bio isVerified')
+    .limit(20);
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Search users error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
