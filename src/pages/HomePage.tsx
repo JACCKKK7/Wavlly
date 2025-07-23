@@ -29,7 +29,7 @@ export function HomePage() {
       console.error('Error loading posts:', error);
       // Try to load posts without authentication as fallback
       try {
-        const response = await fetch('http://localhost:5000/api/posts');
+        const response = await fetch('https://wavlly-1.onrender.com//api/posts');
         const fallbackData = await response.json();
         setPosts(fallbackData.posts || []);
       } catch (fallbackError) {
