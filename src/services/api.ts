@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://https://wavlly-1.onrender.com/api';
+const API_BASE_URL = 'https://wavlly-1.onrender.com/api';
 
 class ApiService {
   private getAuthHeaders() {
