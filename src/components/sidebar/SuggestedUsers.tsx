@@ -25,7 +25,7 @@ export function SuggestedUsers() {
         users = await apiService.getSuggestedUsers();
       } else {
         // Use demo endpoint for non-authenticated users
-        const response = await fetch('http://localhost:5000/api/users/demo-suggested');
+        const response = await fetch('https://wavlly-1.onrender.com/api/users/demo-suggested');
         const data = await response.json();
         users = data.users || [];
       }
