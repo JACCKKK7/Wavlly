@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build": "echo 'No build step required for Node.js backend'",
     "dev": "vite",
     "server": "cd backend && node server.js",
     "server:dev": "cd backend && npm run dev",
